@@ -11,7 +11,6 @@ router.post("/register", async (req, res) => {
     const { firstName, lastName, email, password } = req.body;
 
     // Combine first + last into single name field
-    const name = `${firstName} ${lastName}`;
 
     const existingUser = await User.findOne({ email });
     if (existingUser)
@@ -19,7 +18,7 @@ router.post("/register", async (req, res) => {
 
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    const newUser = new User({ name, email, password: hashedPassword });
+    const newUser = new User({ firstName, lastName, email, password: hashedPassword });
     await newUser.save();
 
     res.status(201).json({ message: "House Registration successful" });
