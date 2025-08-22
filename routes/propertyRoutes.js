@@ -43,7 +43,6 @@ router.post("/", async (req, res) => {
   }
 });
 
-// ================= GET ALL (with filters) =================
 router.get("/", async (req, res) => {
   try {
     const { location, type, beds, baths, minPrice, maxPrice } = req.query;
@@ -51,7 +50,7 @@ router.get("/", async (req, res) => {
     let query = {};
 
     if (location) {
-      query.location = { $regex: location, $options: "i" }; // case-insensitive
+      query.location = { $regex: location, $options: "i" }; // case-insensitive match
     }
     if (type) {
       query.type = { $regex: type, $options: "i" };
@@ -68,10 +67,12 @@ router.get("/", async (req, res) => {
       if (maxPrice) query.price.$lte = Number(maxPrice);
     }
 
-    const properties = await Property.find(query);
-    res.json({ success: true, data: properties });
+    // fetch & sort newest first
+    const properties = await Property.find(query).sort({ createdAt: -1 });
+
+    res.status(200).json({ success: true, properties });
   } catch (error) {
-    console.error("Error in GET /properties:", error); // 👈 add this
+    console.error("Error in GET /properties:", error);
     res.status(500).json({ success: false, message: error.message });
   }
 });
@@ -86,41 +87,6 @@ router.get("/:id", async (req, res) => {
         .json({ success: false, message: "Property not found" });
     }
     res.json({ success: true, data: property });
-  } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
-  }
-});
-
-// ================= UPDATE =================
-router.put("/:id", async (req, res) => {
-  try {
-    const updates = { ...req.body };
-
-    // If image file is uploaded, upload to Cloudinary
-    if (req.files && req.files.image) {
-      const file = req.files.image;
-      const uploadResult = await cloudinary.uploader.upload(file.tempFilePath, {
-        folder: "properties",
-      });
-      updates.image = uploadResult.secure_url;
-    }
-
-    const property = await Property.findByIdAndUpdate(req.params.id, updates, {
-      new: true,
-      runValidators: true,
-    });
-
-    if (!property) {
-      return res
-        .status(404)
-        .json({ success: false, message: "Property not found" });
-    }
-
-    res.json({
-      success: true,
-      message: "Property updated successfully",
-      data: property,
-    });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }

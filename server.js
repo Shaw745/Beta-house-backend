@@ -13,10 +13,7 @@ app.use(express.json());
 
 // ✅ CORS configuration
 app.use(
-  cors({
-    origin: "http://localhost:5173", // update if frontend runs on a different port
-    credentials: true,
-  })
+  cors()
 );
 
 app.use(
