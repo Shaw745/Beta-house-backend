@@ -5,9 +5,13 @@ const User = require("../models/User.js");
 
 const router = express.Router();
 
+// REGISTER
 router.post("/register", async (req, res) => {
   try {
-    const { name, email, password } = req.body;
+    const { firstName, lastName, email, password } = req.body;
+
+    // Combine first + last into single name field
+    const name = `${firstName} ${lastName}`;
 
     const existingUser = await User.findOne({ email });
     if (existingUser)
@@ -24,6 +28,7 @@ router.post("/register", async (req, res) => {
   }
 });
 
+// LOGIN
 router.post("/login", async (req, res) => {
   try {
     const { email, password } = req.body;

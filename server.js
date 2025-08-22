@@ -6,11 +6,19 @@ const cors = require("cors");
 const cloudinary = require("cloudinary").v2;
 const fileUpload = require("express-fileupload");
 const port = process.env.PORT || 3000;
-const authRoutes = require("./routes/authRoutes")
+const authRoutes = require("./routes/authRoutes");
 const propertyRoutes = require("./routes/propertyRoutes");
 
 app.use(express.json());
-app.use(cors());
+
+// ✅ CORS configuration
+app.use(
+  cors({
+    origin: "http://localhost:5173", // update if frontend runs on a different port
+    credentials: true,
+  })
+);
+
 app.use(
   fileUpload({ useTempFiles: true, limits: { fileSize: 10 * 1024 * 1024 } })
 );
@@ -29,7 +37,7 @@ app.get("/", (req, res) => {
 });
 
 app.use("/api/auth", authRoutes);
-app.use("/api/property", propertyRoutes);
+app.use("/api/properties", propertyRoutes);
 
 app.use((req, res) => {
   res.status(404).json({

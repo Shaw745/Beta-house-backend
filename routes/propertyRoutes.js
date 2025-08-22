@@ -7,7 +7,7 @@ const router = express.Router();
 // ================= CREATE =================
 router.post("/", async (req, res) => {
   try {
-    const { title, price, location, beds, baths, image } = req.body || {};
+    const { title, price, location, type, beds, baths, image } = req.body || {};
     let imageUrl = image;
 
     if (req.files && req.files.image) {
@@ -29,6 +29,7 @@ router.post("/", async (req, res) => {
       title,
       price,
       location,
+      type,
       beds,
       baths,
       image: imageUrl,
@@ -42,12 +43,35 @@ router.post("/", async (req, res) => {
   }
 });
 
-// ================= GET ALL =================
+// ================= GET ALL (with filters) =================
 router.get("/", async (req, res) => {
   try {
-    const properties = await Property.find();
+    const { location, type, beds, baths, minPrice, maxPrice } = req.query;
+
+    let query = {};
+
+    if (location) {
+      query.location = { $regex: location, $options: "i" }; // case-insensitive
+    }
+    if (type) {
+      query.type = { $regex: type, $options: "i" };
+    }
+    if (beds) {
+      query.beds = Number(beds);
+    }
+    if (baths) {
+      query.baths = Number(baths);
+    }
+    if (minPrice || maxPrice) {
+      query.price = {};
+      if (minPrice) query.price.$gte = Number(minPrice);
+      if (maxPrice) query.price.$lte = Number(maxPrice);
+    }
+
+    const properties = await Property.find(query);
     res.json({ success: true, data: properties });
   } catch (error) {
+    console.error("Error in GET /properties:", error); // 👈 add this
     res.status(500).json({ success: false, message: error.message });
   }
 });
